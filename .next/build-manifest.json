@@ -24,10 +24,10 @@
       "static/chunks/webpack.js",
       "static/chunks/pages/_error.js"
     ],
-    "/crear-cuenta": [
+    "/next/dist/pages/_error": [
       "static/chunks/main.js",
       "static/chunks/webpack.js",
-      "static/chunks/pages/crear-cuenta.js"
+      "static/chunks/pages/next/dist/pages/_error.js"
     ],
     "/nuevo-producto": [
       "static/chunks/main.js",

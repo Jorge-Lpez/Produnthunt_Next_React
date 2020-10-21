@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Buscar from "../ui/Buscar";
 import styled from "@emotion/styled";
 import Navegacion from "./Navegacion";
 import Link from "next/link";
 import Boton from "../ui/Boton";
+import { FirebaseContext } from "../../firebase";
 
 const LineaHeader = styled.header`
     border-bottom: 2px solid var(--gris3);
@@ -46,8 +47,13 @@ const ContenedorLogo = styled.div`
 
 const Header = () => {
 
-    const usuario = false;
+    const { usuario, firebase } = useContext(FirebaseContext);
 
+    //funcion cerrar sesion en boton
+    const onClickCerrar = async () => {
+        firebase.cerrarSesion();
+    }
+   
     return ( 
         <LineaHeader>
             <ContenedorHeader>
@@ -63,9 +69,11 @@ const Header = () => {
                 <ContenedorSecundario>
                     {usuario ? 
                         <>
-                        <Parrafo>Hola: Jorge</Parrafo>
+                        <Parrafo>Hola: {usuario.displayName} </Parrafo>
                         <Boton
-                         bgColor= "true">
+                         bgColor= "true"
+                         onClick = {onClickCerrar}
+                         >
                             Cerrar Sesión
                         </Boton>
                         </>
