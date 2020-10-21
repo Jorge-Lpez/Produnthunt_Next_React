@@ -29,10 +29,10 @@
       "static/chunks/webpack.js",
       "static/chunks/pages/crear-cuenta.js"
     ],
-    "/login": [
+    "/nuevo-producto": [
       "static/chunks/main.js",
       "static/chunks/webpack.js",
-      "static/chunks/pages/login.js"
+      "static/chunks/pages/nuevo-producto.js"
     ]
   },
   "ampFirstPages": []
