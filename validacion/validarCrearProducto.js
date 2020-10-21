@@ -10,9 +10,9 @@ export default function validarCrearProducto(valores){
         errores.empresa = "El nombre de la empresa es obligatorio "
     }
 
-    if(!valores.imagen){
+    /*if(!valores.imagen){
         errores.imagen = "La imagen es indispensable para el producto"
-    }
+    }*/
 
     if(!valores.url){
         errores.url = "La url de tu producto es obligatoria"

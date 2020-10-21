@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import FileUploader from "react-firebase-file-uploader"
 import Layout from "../components/layout/Layout";
-import Router from "next/router";
+import Router, { useRouter } from "next/router";
 import { Formulario, Campo, InputSubmit, Titulo, Error} from "../components/ui/Formulario";
 
 //Importando el firebase para iniciar la conexion 
-import firebase from "../firebase";
+import { FirebaseContext } from "../firebase";
 
 //Utilizando el hooks validacion
 import useValidacion from "../hooks/useValidacion";
@@ -20,15 +21,71 @@ const STATE_INICIAL = {
 
 const NuevoProducto = () => {
 
-    //Error al crear cuenta
-    const [error, guardarError] = useState(false);
+    //State de las imagenes 
+    const [nombreimagen, guardarNombre] = useState("");
+    const [subiendo, guardarSubiendo] = useState(false);
+    const [progreso, guardarProgreso] = useState(0);
+    const [urlimagen, guardarUrlImagen] = useState("");
 
-    const { valores, errores, submitForm, handleSubmit, handleChange, handleBlur } = useValidacion(STATE_INICIAL, validarCrearProducto, crearCuenta);
+    const { valores, errores, submitForm, handleSubmit, handleChange, handleBlur } = useValidacion(STATE_INICIAL, validarCrearProducto, crearProducto);
 
     const {nombre, empresa, imagen, url, descripcion} = valores;
+
+    //HOOK  de routing para rideccionar 
+    const router = useRouter();
+
+    //Context con las operaciones crud de firebase 
+    const { usuario, firebase } = useContext(FirebaseContext);
     
-    async function crearCuenta(){
-        
+    async function crearProducto(){
+        //Si el usuario no esta autenticado llevar al login
+        if(!usuario){
+            return router.push("/login");
+        }
+
+        //Crear el objeto de nuevo producto
+        const producto = {
+            nombre,
+            empresa,
+            url,
+            urlimagen,
+            descripcion,
+            votos: 0,
+            comentarios: [],
+            creado: Date.now()
+        }
+        //Insertarlo en la base de datos
+        firebase.db.collection("productos").add(producto);
+
+        return router.push("/");
+    }
+
+    //Funciones para cargar la imagen y mostrar informacion llenando los state
+    const handleUploadStart = () => {
+        guardarProgreso(0);
+        guardarSubiendo(true);
+    }
+    const handleProgress = progreso => guardarProgreso( { progreso });
+
+    const handleUploadError = error => {
+        guardarSubiendo(error);
+        console.log(error);
+    }
+
+    const handleUploadSuccess = nombre => {
+        guardarProgreso(100);
+        guardarSubiendo(false);
+        guardarNombre(nombre);
+        firebase
+            .storage
+            .ref("productos")
+            .child(nombre)
+            .getDownloadURL()
+            .then(url => {
+                console.log(url);
+                guardarUrlImagen(url);
+            
+            } )
     }
 
     return ( 
@@ -68,16 +125,19 @@ const NuevoProducto = () => {
                         {errores.empresa && <Error>{errores.empresa}</Error>}
                         <Campo>
                             <label htmlFor="imagen">Imagen</label>
-                            <input
-                                type="file"
+                            <FileUploader
+                                accept="image/*"
                                 id="imagen"
                                 name="imagen"
-                                onChange={handleChange}
-                                onBlur = {handleBlur}
-                                value={imagen}
+                                randomizeFilename
+                                storageRef={firebase.storage.ref("productos")}
+                                onUploadStart={handleUploadStart}
+                                onUploadError={handleUploadError}
+                                onUploadSuccess={handleUploadSuccess}
+                                onProgress={handleProgress}
                             />
                         </Campo>
-                        {errores.imagen && <Error>{errores.imagen}</Error>}
+                       
                         <Campo>
                             <label htmlFor="url">URL</label>
                             <input
@@ -106,8 +166,6 @@ const NuevoProducto = () => {
                     </Campo>
                     {errores.descripcion && <Error>{errores.descripcion}</Error>}
                 </fieldset>
-
-                {error && <Error>{error}</Error>}
                 <InputSubmit
                     type="submit"
                     value="Crear Producto"
