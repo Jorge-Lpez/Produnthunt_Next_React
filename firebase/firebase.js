@@ -2,13 +2,21 @@ import app from "firebase/app";
 import firebaseConfig from "./config";
 //Habilitamos la autentificacion
 import "firebase/auth";
+//Habilitamos el firebasestore para guardar archivos en la base de datos
+import "firebase/firestore";
+//Habilitamos el storage
+import "firebase/storage";
 
 class Firebase {
     constructor() {
+
         if(!app.apps.length){
             app.initializeApp(firebaseConfig);
         }
+
         this.auth = app.auth();
+        this.db = app.firestore();
+        this.storage = app.storage();
     }
 
     //Registrar unn usuario 
