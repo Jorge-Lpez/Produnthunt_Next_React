@@ -1,3 +1,4 @@
+import '../styles/globals.css';
 import App from "next/app";
 import firebase, { FirebaseContext } from "../firebase";
 import useAutentificacion from "../hooks/useAutentificacion";
