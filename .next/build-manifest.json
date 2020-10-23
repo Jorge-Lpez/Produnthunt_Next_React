@@ -34,11 +34,6 @@
       "static/chunks/webpack.js",
       "static/chunks/pages/next/dist/pages/_error.js"
     ],
-    "/nuevo-producto": [
-      "static/chunks/main.js",
-      "static/chunks/webpack.js",
-      "static/chunks/pages/nuevo-producto.js"
-    ],
     "/productos/[id]": [
       "static/chunks/main.js",
       "static/chunks/webpack.js",
