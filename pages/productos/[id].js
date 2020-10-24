@@ -147,6 +147,36 @@ const Producto = () => {
         guardarConsultarDB(true);
     }
 
+    //Verificar si el cliente es el mismo que el usuario registrado
+    const borrarCreador = () =>{
+        if(!usuario){
+            return false;
+        }
+
+        if(creador.id === usuario.uid){
+            return true;
+        }
+    }
+
+    //Eliminar un producto de la bd
+    const eliminarProducto = async () => {
+        
+        if(!usuario){
+            return router.push("/login");
+        }
+
+        if(creador.id !== usuario.uid){
+            return router.push("/");
+        }
+
+        try {
+            await firebase.db.collection("productos").doc(id).delete();
+            router.push("/");
+        } catch (error){
+            console.log(error)
+        }
+    }
+
     return ( 
         <Layout>
             <>
@@ -194,8 +224,8 @@ const Producto = () => {
                                                                 key={`${comentario.usuarioId}-${i}`}
                                                             >
                                                                 <p>{comentario.mensaje}</p>
-                                                                <p>Escrito por: 
-                                                                    <span>{`  ${comentario.usuarioNombre}`}</span>
+                                                                <p>Escrito por:
+                                                                    <span>{`  ${ comentario.usuarioNombre }`}</span>
                                                                 </p>
                                                                 {origenCreador(comentario.usuarioId) &&
                                                                     <CreadorProducto>Es creador</CreadorProducto>
@@ -225,6 +255,13 @@ const Producto = () => {
                                                 </div>
                                             </aside>
                                     </ContenedorProducto>
+                                    { borrarCreador() && 
+                                        <Boton
+                                            onClick={eliminarProducto}
+                                        >
+                                            Eliminar Producto
+                                        </Boton>
+                                    }
                                </>
                             }
                         </div>   
