@@ -27,39 +27,58 @@ const Titulo2 = styled.h2`
     margin: 2rem 0;
 `;
 
+const CreadorProducto = styled.p`
+    padding: .5rem 2rem;
+    background-color: #DA552F;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+`;
+
 const Producto = () => {
 
     //Routing para obtener el id actual 
     const router = useRouter();
     const { query: { id } } = router;
 
+    //Crando state para cambio de producto y no ciclar la aplicacion
+    const[consultarDB, guardarConsultarDB] = useState(true);
     //Creando estate para guardar el resultado de la busqueda
     const [producto, guardarProducto] = useState("");
     //state para el error en la consulta 
     const [error, guardarError] = useState(false);
     //State para activar el spinner 
     const [activar, guardarActivar] = useState(false);
+    //Creando state para comentarios
+    const [nuevosComentarios, guardarComentarios] = useState({
+        mensaje: ""
+    });
+
     // Extrayendo firebase de firebasecontext para llamar a la funciones de firebase
     const { firebase, usuario } = useContext(FirebaseContext);
 
     useEffect(() => {
-        if(id){
+        if(id && consultarDB){
             const obtenerProducto = async ()  => {
                 const productoQuery = await firebase.db.collection("productos").doc(id);
                 const producto = await productoQuery.get();
                 if(producto.exists){
                     guardarProducto(producto.data());
+                    guardarConsultarDB(false);
                     guardarActivar(true);
                     setTimeout(() => {
                         guardarActivar(false);
-                    }, 2000);
+                    }, 1000);
                 }else{
                     guardarError(true);
+                    guardarConsultarDB(false);
                 }
             }
             obtenerProducto();
         }
-    }, [id, producto]);
+    }, [id]);
 
     //guardarActivar(true);
     //if(Object.keys(producto).length === 0)return <Spinner/>;
@@ -84,6 +103,48 @@ const Producto = () => {
             ...producto,
             votos: NuevoVotos
         });
+        guardarConsultarDB(true);
+    }
+
+    //Creando funcion para llenar el state de comentarios
+    const handleComentarios = (e) =>{
+        guardarComentarios({
+            ...nuevosComentarios,
+            [e.target.name] : e.target.value
+        });
+    }
+
+    //Funcion vewrifica si es el creador el que escribe el comeentario
+    const origenCreador = id => {
+        if(creador.id === id){
+            return true;
+        }
+    }
+
+    //Creando funcion boton comentar en el formulario para agregar formulari
+    const onsubmitComentario = (e) => {
+        e.preventDefault();
+        if(!usuario){
+            return router.push("/");
+        }
+        //Informacion extra al comentario 
+        nuevosComentarios.usuarioId = usuario.uid;
+        nuevosComentarios.usuarioNombre = usuario.displayName;
+        //Tomar copia de comentario y agregarlos al arreglo
+        const nuevosComentario = [...comentarios, nuevosComentarios];
+        //Actualizar la BD
+        firebase.db.collection("productos").doc(id).update({
+            comentarios: nuevosComentario
+        })
+        // Actualizar el state
+        guardarProducto({
+            ...producto,
+            comentarios: nuevosComentario
+        })
+        guardarComentarios({
+            mensaje: ""
+        });
+        guardarConsultarDB(true);
     }
 
     return ( 
@@ -107,11 +168,15 @@ const Producto = () => {
                                                 {usuario &&
                                                     <>
                                                         <h2>Agrega tu comentario</h2>
-                                                        <form>
+                                                        <form
+                                                            onSubmit={onsubmitComentario}
+                                                        >
                                                             <Campo>
                                                                 <input
                                                                     type="text"
                                                                     name="mensaje"
+                                                                    onChange={handleComentarios}
+                                                                    value={nuevosComentarios.mensaje}
                                                                 />
                                                             </Campo>
                                                             <InputSubmit
@@ -122,12 +187,23 @@ const Producto = () => {
                                                     </>    
                                                 }
                                                 <Titulo2>Comentarios</Titulo2>
-                                                {comentarios.map( comentario => (
-                                                    <li>
-                                                        <p>{comentario.nombre}</p>
-                                                        <p>Escrito por: {comentario.usuarioNombre}</p>
-                                                    </li>
-                                                ))}
+                                                {comentarios.length === 0 ? "Aun no hay comentarios" :
+                                                    <ul>
+                                                        {comentarios.map( (comentario, i) => (
+                                                            <li
+                                                                key={`${comentario.usuarioId}-${i}`}
+                                                            >
+                                                                <p>{comentario.mensaje}</p>
+                                                                <p>Escrito por: 
+                                                                    <span>{`  ${comentario.usuarioNombre}`}</span>
+                                                                </p>
+                                                                {origenCreador(comentario.usuarioId) &&
+                                                                    <CreadorProducto>Es creador</CreadorProducto>
+                                                                }
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                }
                                             </div>
                                             <aside>
                                                 <Boton
